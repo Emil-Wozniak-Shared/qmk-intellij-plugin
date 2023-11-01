@@ -1,7 +1,10 @@
 package pl.ejdev.qmk.window.components
 
+import com.intellij.ui.JBColor
 import pl.ejdev.qmk.keycodes.KeyCode
 import pl.ejdev.qmk.model.KeyboardCap
+import pl.ejdev.qmk.window.KEYCAP_DARK
+import pl.ejdev.qmk.window.KEYCAP_LIGHT
 import java.awt.*
 import javax.swing.JPanel
 import kotlin.math.roundToInt
@@ -56,16 +59,40 @@ internal class KeyCaps(
 
     override fun getPreferredSize(): Dimension = Dimension(width, height)
 
+
     override fun paintComponent(graphics: Graphics) {
         super.paintComponent(graphics)
-        val graphics2D = graphics as Graphics2D
         keymaps
-            .onEach { graphics.draw3DRect(it.x, it.y, it.width, it.height, true) }
-            .onEachIndexed { index, it ->
-                if (labels.isNotEmpty() && labels.size >= index) {
-                    graphics2D.font = Font("DejaVu", Font.ROMAN_BASELINE, 10)
-                    graphics2D.drawString(labels[index], it.x + 5, it.y + 25)
+            .onEach {
+                graphics.in2d {
+                    drawBox(it, JBColor.WHITE, 0)
+                    drawBox(it, background = KEYCAP_DARK, padding = 1)
+                    drawBox(it, background = KEYCAP_LIGHT, padding = 4)
                 }
             }
+            .onEachIndexed { index, it ->
+                if (labels.isNotEmpty() && labels.size >= index) {
+                    graphics.in2d {
+                        color = JBColor.WHITE
+                        font = Font("DejaVu", Font.ROMAN_BASELINE, 10)
+                        drawString(labels[index], it.x + 5, it.y + 25)
+                    }
+                }
+            }
+    }
+
+    private fun Graphics2D.drawBox(rectangle: Rectangle, background: Color, padding: Int) {
+        color = background
+        fillRect(
+            rectangle.x + padding,
+            rectangle.y + padding,
+            rectangle.width - padding * 2,
+            rectangle.height - padding * 2
+        )
+        drawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 10, 10)
+    }
+
+    private fun Graphics.in2d(dsl: Graphics2D.() -> Unit) {
+        dsl(this as Graphics2D)
     }
 }

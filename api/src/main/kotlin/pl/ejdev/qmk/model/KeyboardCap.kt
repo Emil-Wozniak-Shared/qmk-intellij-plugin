@@ -1,6 +1,7 @@
 package pl.ejdev.qmk.model
 
 import com.beust.klaxon.JsonObject
+import pl.ejdev.qmk.utils.safeDouble
 
 data class KeyboardCap(
     var matrix: List<Int> = listOf(),
@@ -12,12 +13,10 @@ data class KeyboardCap(
     companion object {
         fun from(json: JsonObject): KeyboardCap = KeyboardCap(
             matrix = json.array<Int>("matrix")?.value.orEmpty(),
-            x = json("x"),
-            y = json("y"),
-            h = json("h"),
-            w = json("w"),
+            x = json.safeDouble("x"),
+            y = json.safeDouble("y"),
+            h = json.safeDouble("h"),
+            w = json.safeDouble("w"),
         )
-
-        private operator fun JsonObject.invoke(prop: String) = (this[prop]?.toString() ?: "1.0").toDouble()
     }
 }
