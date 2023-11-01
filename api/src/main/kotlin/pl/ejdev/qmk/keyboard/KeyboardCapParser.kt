@@ -8,10 +8,9 @@ import pl.ejdev.qmk.model.KeyboardCap
 
 internal object KeyboardCapParser {
     private val parser = Parser.default()
-//    private val keyboardCache: Map<>
 
-    fun findKeyboard(base: List<String>, layoutName: String): Keyboard? =
-        fromResources(base)
+    fun findKeyboard(lines: List<String>, layoutName: String): Keyboard? =
+        fromResources(lines)
             ?.findLayout(name = layoutName)
             ?.let(::Keyboard)
 

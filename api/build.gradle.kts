@@ -12,9 +12,8 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
-
-    implementation("commons-codec:commons-codec:1.16.0")
     implementation("com.beust:klaxon:5.6")
+    implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.9.2")
 
     testImplementation(kotlin("test"))
 }

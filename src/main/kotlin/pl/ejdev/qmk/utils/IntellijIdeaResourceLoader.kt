@@ -6,12 +6,11 @@ import java.io.InputStreamReader
 
 object IntellijIdeaResourceLoader {
 
-    fun getResource(filePath: String): List<String> {
-        return PluginManager.getPlugins()
-            .find { it.name == "Qmk" }
-            ?.classLoader
-            ?.getResourceAsStream(filePath)
-            ?.let { BufferedReader(InputStreamReader(it)).lines().toList() }
-            .orEmpty()
-    }
+    @Suppress("UnstableApiUsage")
+    fun getResource(filePath: String): List<String> = PluginManager.getPlugins()
+        .find { it.name == "Qmk" }
+        ?.classLoader
+        ?.getResourceAsStream(filePath)
+        ?.let { BufferedReader(InputStreamReader(it)).lines().toList() }
+        .orEmpty()
 }
