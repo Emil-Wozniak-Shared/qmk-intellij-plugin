@@ -6,6 +6,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbUtil
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.ui.components.JBBox
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.panel
 import pl.ejdev.qmk.KeyboardLoader
@@ -16,6 +17,7 @@ import pl.ejdev.qmk.utils.IntellijIdeaResourceLoader
 import pl.ejdev.qmk.window.components.KeyCaps
 import pl.ejdev.qmk.window.components.createKeyCaps
 import pl.ejdev.qmk.window.components.onChange
+import pl.ejdev.qmk.window.components.uploadFileFrame
 import java.nio.file.Path
 import javax.swing.Box
 import kotlin.io.path.pathString
@@ -28,7 +30,7 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
     private val layoutNames = keyboardCache.map { it.keyboard to it.layouts }
 
     private lateinit var filePathsComboBox: Cell<ComboBox<String>>
-    private lateinit var kbCell: Cell<Box>
+    private lateinit var keyboardCell: Cell<Box>
 
     val content = panel {
         var filePath = "ergodox_ez"
@@ -42,16 +44,23 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
                 lines = keyboardFileLines(filePath)
                 layoutName = layoutNames.find { it.first == selected }!!.second.first()
                 caps = keyboardCaps(lines, layoutName)
-                kbCell.apply {
+                keyboardCell.apply {
                     component.remove(0)
                     component.repaint()
                     component.add(createKeyCaps(caps, qmkLayout, keyCodes).addToKeyboardBox())
                 }
             }
         }
-
         row {
-            kbCell = cell(createKeyCaps(caps, qmkLayout, keyCodes).addToKeyboardBox())
+            cell(JBBox
+                .createVerticalBox()
+                .uploadFileFrame { content ->
+                    println(content)
+                }
+            )
+        }
+        row {
+            keyboardCell = cell(createKeyCaps(caps, qmkLayout, keyCodes).addToKeyboardBox())
         }
     }
 

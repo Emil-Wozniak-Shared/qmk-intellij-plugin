@@ -27,23 +27,25 @@ internal fun createKeyCaps(
     }
 
     return keyCapLayers.subList(0, 1).mapIndexed { _, keyCaps ->
-        groups.values.map { group ->
-            addKeyCaps(group, size, keyCaps)
+        keyCaps.apply {
+            groups.values.map { group ->
+                addKeyCaps(group, size)
+            }
         }
-        keyCaps
     }
 }
 
-private fun addKeyCaps(group: List<KeyboardCap>, size: Int, keyCaps: KeyCaps) = group.forEach { cap ->
-    val x: Int = (cap.x * size).roundToInt()
-    val y: Int = (cap.y * size).roundToInt()
-    val w: Int = (cap.w * size).roundToInt()
-    val h: Int = (cap.h * size).roundToInt()
-    keyCaps.createKeyCap(x, y, w, h)
-}
+private fun KeyCaps.addKeyCaps(keyCapGroup: List<KeyboardCap>, size: Int) =
+    keyCapGroup.forEach { keyCap ->
+        val x: Int = (keyCap.x * size).roundToInt()
+        val y: Int = (keyCap.y * size).roundToInt()
+        val w: Int = (keyCap.w * size).roundToInt()
+        val h: Int = (keyCap.h * size).roundToInt()
+        this.createKeyCap(x, y, w, h)
+    }
 
-private fun createLabels(qmkLayout: List<String>, keyCodes: List<KeyCode>) = qmkLayout
-    .map { keyCodes.find { kc -> kc.key == it }?.description ?: it }
+private fun createLabels(qmkLayout: List<String>, keyCodes: List<KeyCode>): List<String> =
+    qmkLayout.map { layout -> keyCodes.find { kc -> kc.key == layout }?.description ?: layout }
 
 internal class KeyCaps(
     private val width: Int = 100,
@@ -64,7 +66,7 @@ internal class KeyCaps(
         super.paintComponent(graphics)
         keymaps
             .onEach {
-                graphics.in2d {
+                graphics.in2D {
                     drawBox(it, JBColor.WHITE, 0)
                     drawBox(it, background = KEYCAP_DARK, padding = 1)
                     drawBox(it, background = KEYCAP_LIGHT, padding = 4)
@@ -72,7 +74,7 @@ internal class KeyCaps(
             }
             .onEachIndexed { index, it ->
                 if (labels.isNotEmpty() && labels.size >= index) {
-                    graphics.in2d {
+                    graphics.in2D {
                         color = JBColor.WHITE
                         font = Font("DejaVu", Font.ROMAN_BASELINE, 10)
                         drawString(labels[index], it.x + 5, it.y + 25)
@@ -92,7 +94,5 @@ internal class KeyCaps(
         drawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 10, 10)
     }
 
-    private fun Graphics.in2d(dsl: Graphics2D.() -> Unit) {
-        dsl(this as Graphics2D)
-    }
+    private fun Graphics.in2D(dsl: Graphics2D.() -> Unit) = dsl(this as Graphics2D)
 }
