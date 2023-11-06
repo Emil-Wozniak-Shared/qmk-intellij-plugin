@@ -1,6 +1,5 @@
 package pl.ejdev.qmk.keycodes
 
-
 private const val SEPARATOR = ";"
 
 object KeyCodeParser {

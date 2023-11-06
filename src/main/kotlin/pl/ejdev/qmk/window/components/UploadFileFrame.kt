@@ -4,7 +4,6 @@ import com.intellij.ui.components.JBBox
 import java.awt.Font
 import java.awt.Font.PLAIN
 import java.io.File
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane.showMessageDialog
 import kotlin.concurrent.thread
 
@@ -21,7 +20,6 @@ internal fun JBBox.uploadFileFrame(
     action: (content: String) -> Unit
 ) = setupPanel(prefWidth, prefHeight) {
     var filename: String? = null
-    var selectedFilename: String? = null
 
     fun checkSupportedType(it: String) {
         if (!it.endsWith("json")) {
@@ -59,11 +57,11 @@ internal fun JBBox.uploadFileFrame(
     this + button(name = "Browse") {
         setBounds(258, Y_DIMENSION, ELEMENT_WIDTH, ELEMENT_HEIGHT)
         addActionListener {
-            val chooser = JFileChooser()
-            chooser.showOpenDialog(chooser)
-            filename = chooser.selectedFile.absolutePath
-            filenameTextField.text = filename
-            selectedFilename = File(filename!!).getName()
+            fileChooser {
+                val path = it.absolutePath
+                filenameTextField.text = path
+                filename = path
+            }
         }
         setFont(TIME_NEW_ROMAN_14)
     }

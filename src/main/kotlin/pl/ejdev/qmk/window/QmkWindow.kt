@@ -89,11 +89,10 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
             }
             .toList()
             .let { keyboards ->
-                keyboards
-                    .mapNotNull {
-                        val lines = IntellijIdeaResourceLoader.getResource("keyboards/$it/$infoFile")
-                        KeyboardLoader.extractKeyboardInfo(it, lines)
-                    }
+                keyboards.mapNotNull {
+                    val lines = IntellijIdeaResourceLoader.getResource("keyboards/$it/$infoFile")
+                    KeyboardLoader.extractKeyboardInfo(it, lines)
+                }
             }
     }
 

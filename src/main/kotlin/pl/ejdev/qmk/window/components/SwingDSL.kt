@@ -3,6 +3,7 @@ package pl.ejdev.qmk.window.components
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.dsl.builder.Cell
 import java.awt.Dimension
+import java.io.File
 import javax.swing.*
 
 fun <T : Any> Cell<ComboBox<T>>.onChange(action: (Any) -> Unit) = apply {
@@ -29,6 +30,11 @@ fun setupPanel(
 
 fun label(text: String, ctx: JLabel.() -> Unit) = JLabel(text).apply(ctx)
 
+fun fileChooser(parent: JComponent? = null, onSelect: JFileChooser.(File) -> Unit) = JFileChooser()
+    .apply { showOpenDialog(parent ?: this) }
+    .apply { onSelect(selectedFile) }
+
 operator fun JComponent.plus(component: JComponent) {
     this.add(component)
 }
+
