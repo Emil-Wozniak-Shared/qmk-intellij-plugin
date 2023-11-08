@@ -3,9 +3,12 @@ package pl.ejdev.qmk.keyboard
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
+import pl.ejdev.qmk.ConfigFileReader
 import pl.ejdev.qmk.model.Keyboard
 import pl.ejdev.qmk.model.KeyboardCap
 import pl.ejdev.qmk.model.KeyboardInfo
+import pl.ejdev.qmk.model.SystemConfigSettings
+import java.io.File
 
 private const val QUOTED_SLASHES = "\"//\""
 private const val HTTP = "http"
@@ -51,4 +54,25 @@ internal object KeyboardCapParser {
             .toJsonObject()!!["layers"] as JsonArray<JsonArray<String>>
         return layers.value.map { it.value }
     }
+
+    @Suppress("UNCHECKED_CAST")
+    fun systemFiles(): SystemConfigSettings? = ConfigFileReader.homeDirConfig()
+        .filter { it.name.endsWith(".json") }
+        .map { it.readLines() }
+        .mapNotNull { it.toJsonObject() }
+        .filter {
+            it["keyboard"] != null &&
+                    it["layout"] != null &&
+                    it["layers"] != null
+        }
+        .map { json ->
+            val keyboard = json["keyboard"]!!.toString()
+            val layout = json["layout"]!!.toString()
+            val layers = json["layers"]!! as JsonArray<JsonArray<String>>
+            val allLayers = layers.value.map { it.value }
+            SystemConfigSettings(
+                keyboard, layout, allLayers
+            )
+        }
+        .firstOrNull()
 }

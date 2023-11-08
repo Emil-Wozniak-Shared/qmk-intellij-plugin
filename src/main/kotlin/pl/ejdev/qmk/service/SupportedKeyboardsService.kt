@@ -25,5 +25,6 @@ object SupportedKeyboardsService {
                     KeyboardLoader.extractKeyboardInfo(it, lines)
                 }
             }
+            .filter { info -> info.layouts.all { it != "null" } }
     }
 }

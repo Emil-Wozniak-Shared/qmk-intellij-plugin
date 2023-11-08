@@ -72,12 +72,12 @@ internal class KeyCaps(
                     drawBox(it, background = KEYCAP_LIGHT, padding = 4)
                 }
             }
-            .onEachIndexed { index, it ->
+            .onEachIndexed { index, rectangle ->
                 if (labels.isNotEmpty() && labels.size >= index) {
                     graphics.in2D {
                         color = JBColor.WHITE
                         font = Font("DejaVu", Font.ROMAN_BASELINE, 10)
-                        drawString(labels[index], it.x + 5, it.y + 25)
+                        drawString(labels[index], rectangle.x + 5, rectangle.y + 25)
                     }
                 }
             }

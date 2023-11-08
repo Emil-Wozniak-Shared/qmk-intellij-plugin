@@ -28,13 +28,14 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
     private val windowState: WindowState = WindowState()
 
     init {
+        applySystemConfigFileSettings()
         windowState.lines = keyboardFileLines()
         windowState.caps = loadKeyboardCaps()
     }
 
     private lateinit var filePathsComboBox: Cell<ComboBox<String>>
-    private lateinit var keyboardCell: Cell<Box>
 
+    private lateinit var keyboardCell: Cell<Box>
     val content = panel {
         row {
             filePathsComboBox = comboBox(keyboardCache.map(KeyboardInfo::keyboard)).onChange { selected ->
@@ -47,6 +48,19 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
         }
         row {
             keyboardCell = cell(createKeyCaps(windowState.caps, defaultLayout, keyCodes).addToKeyboardBox())
+        }
+    }
+
+    private fun applySystemConfigFileSettings() {
+        KeyboardLoader.configFromSystem()?.let { settings ->
+            keyboardCache
+                .filter { cache -> settings.keyboard.contains(cache.keyboard) }
+                .firstOrNull { cache -> cache.layouts.isNotEmpty() }
+                ?.let { info ->
+                    windowState.filePath = info.keyboard
+                    windowState.layoutName = settings.layout
+                }
+            windowState.layoutConfig = settings.layers
         }
     }
 
