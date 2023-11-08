@@ -14,7 +14,6 @@ private const val ELEMENT_WIDTH = 125
 private const val ELEMENT_HEIGHT = 31
 private const val Y_DIMENSION = 26
 private const val START_POINT = 10
-
 private const val NEW_LINE = "\n"
 
 internal fun JBBox.uploadFilePanel(
