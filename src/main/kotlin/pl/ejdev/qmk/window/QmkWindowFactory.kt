@@ -10,7 +10,7 @@ private const val LOCKED = false
 
 class QmlWindowFactory : ToolWindowFactory, DumbAware {
     private val contentFactory: ContentFactory = ContentFactory.getInstance()
-    override fun createToolWindowContent(project: Project, toolWindow: ToolWindow): Unit {
+    override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         QmkWindow(toolWindow)
             .let { contentFactory.createContent(it.content, null, LOCKED) }
             .let(toolWindow.contentManager::addContent)
