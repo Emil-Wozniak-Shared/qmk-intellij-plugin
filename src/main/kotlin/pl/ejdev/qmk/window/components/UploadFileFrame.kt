@@ -17,7 +17,7 @@ private const val START_POINT = 10
 
 private const val NEW_LINE = "\n"
 
-internal fun JBBox.uploadFileFrame(
+internal fun JBBox.uploadFilePanel(
     prefWidth: Int = ELEMENT_WIDTH * 4,
     prefHeight: Int = ELEMENT_HEIGHT * 3,
     action: (content: String) -> Unit

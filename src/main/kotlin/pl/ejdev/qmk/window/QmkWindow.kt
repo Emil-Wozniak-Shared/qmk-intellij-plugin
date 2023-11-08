@@ -17,7 +17,7 @@ import pl.ejdev.qmk.utils.IntellijIdeaResourceLoader
 import pl.ejdev.qmk.window.components.KeyCaps
 import pl.ejdev.qmk.window.components.createKeyCaps
 import pl.ejdev.qmk.window.components.onChange
-import pl.ejdev.qmk.window.components.uploadFileFrame
+import pl.ejdev.qmk.window.components.uploadFilePanel
 import java.nio.file.Path
 import javax.swing.Box
 import kotlin.io.path.pathString
@@ -25,38 +25,32 @@ import kotlin.io.path.pathString
 internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAware {
     private val keyCodes = KeyCodeParser.parse(IntellijIdeaResourceLoader.getResource("keycodes/keycodes.csv"))
     private val keyboardCache: List<KeyboardInfo> = loadAllSupportedKeyboards()
-
     private val filePaths = keyboardCache.map { it.keyboard }
     private val layoutNames = keyboardCache.map { it.keyboard to it.layouts }
-
-    private lateinit var filePathsComboBox: Cell<ComboBox<String>>
-    private lateinit var keyboardCell: Cell<Box>
-
     private var filePath = "ergodox_ez"
     private var layoutName = "LAYOUT_ergodox"
     private var lines = keyboardFileLines(filePath)
     private var caps: List<KeyboardCap> = keyboardCaps(lines, layoutName)
+    private var layoutConfig: List<List<String>> = defaultLayout
+
+    private lateinit var filePathsComboBox: Cell<ComboBox<String>>
+    private lateinit var keyboardCell: Cell<Box>
 
     val content = panel {
-
         row {
             filePathsComboBox = comboBox(filePaths).onChange { selected ->
                 filePath = selected.toString()
                 lines = keyboardFileLines(filePath)
                 layoutName = layoutNames.find { it.first == selected }!!.second.first()
                 caps = keyboardCaps(lines, layoutName)
-                keyboardCell.apply {
-                    component.remove(0)
-                    component.repaint()
-                    component.add(createKeyCaps(caps, defaultLayout, keyCodes).addToKeyboardBox())
-                }
+                refreshKeyboard(caps, layoutConfig)
             }
         }
         row {
             cell(
                 JBBox
                     .createVerticalBox()
-                    .uploadFileFrame(action = ::importConfig)
+                    .uploadFilePanel(action = ::importConfig)
             )
         }
         row {
@@ -78,13 +72,16 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
 
     private fun importConfig(content: String): List<List<String>> =
         KeyboardLoader.parseConfigFile(content)
-            .also {
-                keyboardCell.apply {
-                    component.remove(0)
-                    component.repaint()
-                    component.add(createKeyCaps(caps, it, keyCodes).addToKeyboardBox())
-                }
-            }
+            .also { layoutConfig = it }
+            .also { refreshKeyboard(caps, it) }
+
+    private fun refreshKeyboard(caps: List<KeyboardCap>, layouts: List<List<String>>) {
+        keyboardCell.apply {
+            component.remove(0)
+            component.repaint()
+            component.add(createKeyCaps(caps, layouts, keyCodes).addToKeyboardBox())
+        }
+    }
 
     private fun loadAllSupportedKeyboards(): List<KeyboardInfo> {
         val infoFile = "info.json"
@@ -92,8 +89,8 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
             .asSequence()
             .filter { it.endsWith(infoFile) }
             .map(Path::pathString)
-            .map {
-                it
+            .map { path ->
+                path
                     .replace("keyboards/", "")
                     .replace("/$infoFile", "")
             }
