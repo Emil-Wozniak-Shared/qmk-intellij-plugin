@@ -19,27 +19,26 @@ import pl.ejdev.qmk.window.components.*
 import javax.swing.Box
 
 private const val KEYCODES_PATH = "keycodes/keycodes.csv"
+private const val KEYBOARD_INDEX = 0
 
 internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAware {
     private val keyboardCache: List<KeyboardInfo> = SupportedKeyboardsService.loadAllSupportedKeyboards()
+    private val layoutNames = keyboardCache.map { it.keyboard to it.layouts }
     private val keyCodes = KeyCodeParser.parse(IntellijIdeaResourceLoader.getResource(KEYCODES_PATH))
     private val windowState: WindowState = WindowState()
-    private val filePaths = keyboardCache.map { it.keyboard }
-    private val layoutNames = keyboardCache.map { it.keyboard to it.layouts }
+
+    init {
+        windowState.lines = keyboardFileLines()
+        windowState.caps = loadKeyboardCaps()
+    }
 
     private lateinit var filePathsComboBox: Cell<ComboBox<String>>
     private lateinit var keyboardCell: Cell<Box>
 
     val content = panel {
-        windowState.lines = keyboardFileLines()
-        windowState.caps = loadKeyboardCaps()
-
         row {
-            filePathsComboBox = comboBox(filePaths).onChange { selected ->
-                windowState.filePath = selected.toString()
-                windowState.lines = keyboardFileLines()
-                windowState.layoutName = layoutNames.find { it.first == selected }!!.second.first()
-                windowState.caps = loadKeyboardCaps()
+            filePathsComboBox = comboBox(keyboardCache.map(KeyboardInfo::keyboard)).onChange { selected ->
+                refreshState(selected.toString())
                 refreshKeyboard()
             }
         }
@@ -63,16 +62,25 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
             ?.caps
             .orEmpty()
 
+    private fun refreshState(selected: String) {
+        windowState.apply {
+            filePath = selected
+            lines = keyboardFileLines()
+            layoutName = layoutNames.first { it.first == selected }.second.first()
+            caps = loadKeyboardCaps()
+        }
+    }
+
     private fun importConfig(content: String): List<List<String>> =
         KeyboardLoader.parseConfigFile(content)
             .also { windowState.layoutConfig = it }
             .also { refreshKeyboard() }
 
     private fun refreshKeyboard() {
-        keyboardCell.apply {
-            component.remove(0)
-            component.repaint()
-            component.add(createKeyCaps(windowState.caps, windowState.layoutConfig, keyCodes).addToKeyboardBox())
+        keyboardCell.applyToComponent {
+            remove(KEYBOARD_INDEX)
+            repaint()
+            add(createKeyCaps(windowState.caps, windowState.layoutConfig, keyCodes).addToKeyboardBox())
         }
     }
 
