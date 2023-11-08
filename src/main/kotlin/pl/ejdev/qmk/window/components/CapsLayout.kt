@@ -3,8 +3,8 @@ package pl.ejdev.qmk.window.components
 import com.intellij.ui.JBColor
 import pl.ejdev.qmk.keycodes.KeyCode
 import pl.ejdev.qmk.model.KeyboardCap
-import pl.ejdev.qmk.window.KEYCAP_DARK
-import pl.ejdev.qmk.window.KEYCAP_LIGHT
+import pl.ejdev.qmk.window.ui.KEYCAP_DARK
+import pl.ejdev.qmk.window.ui.KEYCAP_LIGHT
 import java.awt.*
 import javax.swing.JPanel
 import kotlin.math.roundToInt
@@ -45,7 +45,7 @@ private fun KeyCaps.addKeyCaps(keyCapGroup: List<KeyboardCap>, size: Int) =
     }
 
 private fun createLabels(qmkLayout: List<String>, keyCodes: List<KeyCode>): List<String> =
-    qmkLayout.map { layout -> keyCodes.find { kc -> kc.key == layout }?.description ?: layout }
+    qmkLayout.map { layout -> keyCodes.find { keyCode -> keyCode.key == layout }?.description ?: layout }
 
 internal class KeyCaps(
     private val width: Int = 100,

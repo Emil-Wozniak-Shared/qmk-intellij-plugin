@@ -1,6 +1,6 @@
 @file:Suppress("UseJBColor")
 
-package pl.ejdev.qmk.window
+package pl.ejdev.qmk.window.ui
 
 import java.awt.Color
 
