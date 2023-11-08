@@ -57,10 +57,10 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
                 .filter { cache -> settings.keyboard.contains(cache.keyboard) }
                 .firstOrNull { cache -> cache.layouts.isNotEmpty() }
                 ?.let { info ->
-                    windowState.filePath = info.keyboard
-                    windowState.layoutName = settings.layout
+                    windowState.keyboard = info.keyboard
+                    windowState.layout = settings.layout
                 }
-            windowState.layoutConfig = settings.layers
+            windowState.layers = settings.layers
         }
     }
 
@@ -68,33 +68,34 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
         Box.createVerticalBox().also { keyboard -> this.forEach { keyboardCap -> keyboard.add(keyboardCap) } }
 
     private fun keyboardFileLines(): List<String> =
-        IntellijIdeaResourceLoader.getResource("keyboards/${windowState.filePath}/info.json")
+        IntellijIdeaResourceLoader.getResource("keyboards/${windowState.keyboard}/info.json")
 
     private fun loadKeyboardCaps(): List<KeyboardCap> =
         KeyboardLoader
-            .load(windowState.lines, windowState.layoutName)
+            .load(windowState.lines, windowState.layout)
             ?.caps
             .orEmpty()
 
     private fun refreshState(selected: String) {
         windowState.apply {
-            filePath = selected
+            keyboard = selected
             lines = keyboardFileLines()
-            layoutName = layoutNames.first { it.first == selected }.second.first()
+            layout = layoutNames.first { it.first == selected }.second.first()
             caps = loadKeyboardCaps()
         }
     }
 
     private fun importConfig(content: String): List<List<String>> =
-        KeyboardLoader.parseConfigFile(content)
-            .also { windowState.layoutConfig = it }
-            .also { refreshKeyboard() }
+        KeyboardLoader.parseConfigFile(content).also {
+            windowState.layers = it
+            refreshKeyboard()
+        }
 
     private fun refreshKeyboard() {
         keyboardCell.applyToComponent {
             remove(KEYBOARD_INDEX)
             repaint()
-            add(createKeyCaps(windowState.caps, windowState.layoutConfig, keyCodes).addToKeyboardBox())
+            add(createKeyCaps(windowState.caps, windowState.layers, keyCodes).addToKeyboardBox())
         }
     }
 

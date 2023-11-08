@@ -4,15 +4,18 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import pl.ejdev.qmk.ConfigFileReader
-import pl.ejdev.qmk.model.Keyboard
-import pl.ejdev.qmk.model.KeyboardCap
-import pl.ejdev.qmk.model.KeyboardInfo
-import pl.ejdev.qmk.model.SystemConfigSettings
+import pl.ejdev.qmk.model.*
+import pl.ejdev.qmk.utils.list
+import pl.ejdev.qmk.utils.text
 import java.io.File
 
 private const val QUOTED_SLASHES = "\"//\""
 private const val HTTP = "http"
 private const val NEW_LINE = "\n"
+private const val KEYBOARD = "keyboard"
+private const val LAYOUTS = "layouts"
+private const val LAYOUT = "layout"
+private const val LAYERS = "layers"
 
 internal object KeyboardCapParser {
     private val parser = Parser.default()
@@ -24,6 +27,26 @@ internal object KeyboardCapParser {
 
     fun extractKeyboardInfo(keyboard: String, lines: List<String>): KeyboardInfo? =
         lines.toJsonObject()?.let { json -> KeyboardInfo.from(keyboard, json) }
+
+    fun parseConfigFile(configFileContent: String): KeyboardLayers = configFileContent
+        .split(NEW_LINE)
+        .toJsonObject()
+        .let(::requireNotNull)
+        .list<JsonArray<String>>(LAYERS)
+        .map(JsonArray<String>::value)
+
+    fun systemFiles(): SystemConfigSettings? = ConfigFileReader.homeDirConfig()
+        .filter { it.name.endsWith(".json") }
+        .map(File::readLines)
+        .mapNotNull { it.toJsonObject() }
+        .filter { json -> json[KEYBOARD] != null && json[LAYOUT] != null && json[LAYERS] != null }
+        .map { json ->
+            val keyboard = json.text(KEYBOARD)
+            val layout = json.text(LAYOUT)
+            val layers = json.list<JsonArray<String>>(LAYERS).map(JsonArray<String>::value)
+            SystemConfigSettings(keyboard, layout, layers)
+        }
+        .firstOrNull()
 
     private fun List<String>.toJsonObject(): JsonObject? =
         this
@@ -41,38 +64,9 @@ internal object KeyboardCapParser {
 
     @Suppress("UNCHECKED_CAST")
     private fun JsonObject.findLayout(name: String): List<KeyboardCap> {
-        val layouts: JsonObject = get("layouts") as JsonObject
+        val layouts: JsonObject = get(LAYOUTS) as JsonObject
         val jsonObject: JsonObject = layouts[name] as JsonObject
-        val layout: JsonArray<JsonObject> = jsonObject["layout"] as JsonArray<JsonObject>
+        val layout: JsonArray<JsonObject> = jsonObject[LAYOUT] as JsonArray<JsonObject>
         return layout.value.map(KeyboardCap::from)
     }
-
-    @Suppress("UNCHECKED_CAST")
-    fun parseConfigFile(configFileContent: String): List<List<String>> {
-        val layers = configFileContent
-            .split(NEW_LINE)
-            .toJsonObject()!!["layers"] as JsonArray<JsonArray<String>>
-        return layers.value.map { it.value }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun systemFiles(): SystemConfigSettings? = ConfigFileReader.homeDirConfig()
-        .filter { it.name.endsWith(".json") }
-        .map { it.readLines() }
-        .mapNotNull { it.toJsonObject() }
-        .filter {
-            it["keyboard"] != null &&
-                    it["layout"] != null &&
-                    it["layers"] != null
-        }
-        .map { json ->
-            val keyboard = json["keyboard"]!!.toString()
-            val layout = json["layout"]!!.toString()
-            val layers = json["layers"]!! as JsonArray<JsonArray<String>>
-            val allLayers = layers.value.map { it.value }
-            SystemConfigSettings(
-                keyboard, layout, allLayers
-            )
-        }
-        .firstOrNull()
 }
