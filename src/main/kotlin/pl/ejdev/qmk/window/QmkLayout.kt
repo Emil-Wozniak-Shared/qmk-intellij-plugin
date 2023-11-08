@@ -1,6 +1,6 @@
 package pl.ejdev.qmk.window
 
-val qmkLayout = listOf(
+val defaultLayout = listOf(
     listOf(
         "KC_EQL",
         "KC_1",

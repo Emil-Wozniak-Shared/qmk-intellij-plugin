@@ -43,4 +43,12 @@ internal object KeyboardCapParser {
         val layout: JsonArray<JsonObject> = jsonObject["layout"] as JsonArray<JsonObject>
         return layout.value.map(KeyboardCap::from)
     }
+
+    @Suppress("UNCHECKED_CAST")
+    fun parseConfigFile(configFileContent: String): List<List<String>> {
+        val layers = configFileContent
+            .split(NEW_LINE)
+            .toJsonObject()!!["layers"] as JsonArray<JsonArray<String>>
+        return layers.value.map { it.value }
+    }
 }

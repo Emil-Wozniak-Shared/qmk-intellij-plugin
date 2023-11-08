@@ -32,11 +32,12 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
     private lateinit var filePathsComboBox: Cell<ComboBox<String>>
     private lateinit var keyboardCell: Cell<Box>
 
+    private var filePath = "ergodox_ez"
+    private var layoutName = "LAYOUT_ergodox"
+    private var lines = keyboardFileLines(filePath)
+    private var caps: List<KeyboardCap> = keyboardCaps(lines, layoutName)
+
     val content = panel {
-        var filePath = "ergodox_ez"
-        var layoutName = "LAYOUT_ergodox"
-        var lines = keyboardFileLines(filePath)
-        var caps: List<KeyboardCap> = keyboardCaps(lines, layoutName)
 
         row {
             filePathsComboBox = comboBox(filePaths).onChange { selected ->
@@ -47,20 +48,19 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
                 keyboardCell.apply {
                     component.remove(0)
                     component.repaint()
-                    component.add(createKeyCaps(caps, qmkLayout, keyCodes).addToKeyboardBox())
+                    component.add(createKeyCaps(caps, defaultLayout, keyCodes).addToKeyboardBox())
                 }
             }
         }
         row {
-            cell(JBBox
-                .createVerticalBox()
-                .uploadFileFrame { content ->
-                    println(content)
-                }
+            cell(
+                JBBox
+                    .createVerticalBox()
+                    .uploadFileFrame(action = ::importConfig)
             )
         }
         row {
-            keyboardCell = cell(createKeyCaps(caps, qmkLayout, keyCodes).addToKeyboardBox())
+            keyboardCell = cell(createKeyCaps(caps, defaultLayout, keyCodes).addToKeyboardBox())
         }
     }
 
@@ -75,6 +75,16 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
             .load(lines, layoutName = layoutName)
             ?.caps
             .orEmpty()
+
+    private fun importConfig(content: String): List<List<String>> =
+        KeyboardLoader.parseConfigFile(content)
+            .also {
+                keyboardCell.apply {
+                    component.remove(0)
+                    component.repaint()
+                    component.add(createKeyCaps(caps, it, keyCodes).addToKeyboardBox())
+                }
+            }
 
     private fun loadAllSupportedKeyboards(): List<KeyboardInfo> {
         val infoFile = "info.json"
