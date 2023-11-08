@@ -9,11 +9,4 @@ data class WindowState(
     var layoutName: String = "LAYOUT_ergodox",
     var layoutConfig: List<List<String>> = defaultLayout,
     var lines: List<String> = emptyList()
-) {
-    companion object {
-        fun WindowState.afterInit(block: WindowState.() -> Unit): WindowState {
-            block(this)
-            return this
-        }
-    }
-}
+)
