@@ -10,21 +10,26 @@ object SupportedKeyboardsService {
     fun loadAllSupportedKeyboards(): List<KeyboardInfo> {
         val infoFile = "info.json"
         return IntellijIdeaResourceLoader.listDir("keyboards")
-            .asSequence()
-            .filter { it.endsWith(infoFile) }
-            .map(Path::pathString)
-            .map { path ->
-                path
-                    .replace("keyboards/", "")
-                    .replace("/$infoFile", "")
+            .map { paths ->
+                paths
+                    .asSequence()
+                    .filter { it.endsWith(infoFile) }
+                    .map(Path::pathString)
+                    .map { path -> replaceSurrondingDetails(path, infoFile) }
+                    .toList()
+                    .let { keyboards ->
+                        keyboards.mapNotNull { keyboard ->
+                            val lines = IntellijIdeaResourceLoader.getResource("keyboards/$keyboard/$infoFile")
+                                .getOrNull().orEmpty()
+                            KeyboardLoader.extractKeyboardInfo(keyboard, lines)
+                        }
+                    }
+                    .filter { info -> info.layouts.all { it != "null" } }
             }
-            .toList()
-            .let { keyboards ->
-                keyboards.mapNotNull {
-                    val lines = IntellijIdeaResourceLoader.getResource("keyboards/$it/$infoFile")
-                    KeyboardLoader.extractKeyboardInfo(it, lines)
-                }
-            }
-            .filter { info -> info.layouts.all { it != "null" } }
+            .getOrNull().orEmpty()
     }
+
+    private fun replaceSurrondingDetails(path: String, infoFile: String) = path
+        .replace("keyboards/", "")
+        .replace("/$infoFile", "")
 }

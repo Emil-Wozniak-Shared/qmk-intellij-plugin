@@ -11,14 +11,17 @@ import kotlin.math.roundToInt
 
 internal fun createKeyCaps(
     caps: List<KeyboardCap>,
-    qmkLayers: List<List<String>>,
+    layers: List<List<String>>,
     keyCodes: List<KeyCode>,
-): List<KeyCaps> {
+): List<JPanel> {
+    if (caps.isEmpty() || layers.isEmpty() || keyCodes.isEmpty()) {
+        return listOf(JPanel())
+    }
     val groups = caps.groupBy { it.matrix[1] }
     val size = 60
     val width = caps.maxOf { it.w }
     val height = caps.maxOf { it.h }
-    val keyCapLayers = qmkLayers.map { layer ->
+    val keyCapLayers = layers.map { layer ->
         KeyCaps(
             width = (width * (size * size) * groups.maxOf { it.value.size }).roundToInt(),
             height = (height * (size * size) * groups.size).roundToInt(),

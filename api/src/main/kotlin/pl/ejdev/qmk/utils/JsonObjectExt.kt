@@ -13,3 +13,6 @@ fun JsonObject.text(prop: String, fallback: String = "") =
 @Suppress("UNCHECKED_CAST")
 fun<T> JsonObject.list(prop: String) =
     (this[prop] as JsonArray<T>?)?.value.orEmpty()
+
+fun JsonObject.`object`(prop: String): JsonObject =
+    requireNotNull(this[prop]) as JsonObject

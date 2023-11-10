@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+    id("org.jetbrains.kotlin.jvm") version "1.9.10"
     id("org.jetbrains.intellij") version "1.15.0"
 }
 
@@ -20,6 +20,7 @@ intellij {
     plugins.set(listOf(/* Plugin Dependencies */))
     dependencies {
         api(project(":api"))
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
     }
 }
 

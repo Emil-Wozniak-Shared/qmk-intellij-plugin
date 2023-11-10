@@ -6,6 +6,7 @@ import com.beust.klaxon.Parser
 import pl.ejdev.qmk.ConfigFileReader
 import pl.ejdev.qmk.model.*
 import pl.ejdev.qmk.utils.list
+import pl.ejdev.qmk.utils.`object`
 import pl.ejdev.qmk.utils.text
 import java.io.File
 
@@ -16,9 +17,11 @@ private const val KEYBOARD = "keyboard"
 private const val LAYOUTS = "layouts"
 private const val LAYOUT = "layout"
 private const val LAYERS = "layers"
+private const val JSON_FILE_EXT = ".json"
 
 internal object KeyboardCapParser {
     private val parser = Parser.default()
+    private val jsonComment = "//.*".toRegex()
 
     fun findKeyboard(lines: List<String>, layoutName: String): Keyboard? =
         lines.toJsonObject()
@@ -36,14 +39,16 @@ internal object KeyboardCapParser {
         .map(JsonArray<String>::value)
 
     fun systemFiles(): SystemConfigSettings? = ConfigFileReader.homeDirConfig()
-        .filter { it.name.endsWith(".json") }
+        .asSequence()
+        .filter { it.name.endsWith(JSON_FILE_EXT) }
         .map(File::readLines)
         .mapNotNull { it.toJsonObject() }
         .filter { json -> json[KEYBOARD] != null && json[LAYOUT] != null && json[LAYERS] != null }
         .map { json ->
             val keyboard = json.text(KEYBOARD)
             val layout = json.text(LAYOUT)
-            val layers = json.list<JsonArray<String>>(LAYERS).map(JsonArray<String>::value)
+            val layers = json.list<JsonArray<String>>(LAYERS)
+                .map(JsonArray<String>::value)
             SystemConfigSettings(keyboard, layout, layers)
         }
         .firstOrNull()
@@ -55,18 +60,17 @@ internal object KeyboardCapParser {
                 when {
                     line.contains(HTTP) -> line
                     line.contains(QUOTED_SLASHES) -> line
-                    else -> line.replace("//.*".toRegex(), "")
+                    else -> line.replace(jsonComment, "")
                 }
             }
             ?.filter(String::isNotEmpty)
             ?.joinToString(NEW_LINE)
             ?.let { parser.parse(it.byteInputStream()) as JsonObject? }
 
-    @Suppress("UNCHECKED_CAST")
     private fun JsonObject.findLayout(name: String): List<KeyboardCap> {
-        val layouts: JsonObject = get(LAYOUTS) as JsonObject
-        val jsonObject: JsonObject = layouts[name] as JsonObject
-        val layout: JsonArray<JsonObject> = jsonObject[LAYOUT] as JsonArray<JsonObject>
-        return layout.value.map(KeyboardCap::from)
+        val layouts: JsonObject = this.`object`(LAYOUTS)
+        val jsonObject: JsonObject = layouts.`object`(name)
+        val layout: List<JsonObject> = jsonObject.list(LAYOUT)
+        return layout.map(KeyboardCap::from)
     }
 }

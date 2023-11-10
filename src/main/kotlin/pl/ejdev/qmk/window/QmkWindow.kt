@@ -15,8 +15,16 @@ import pl.ejdev.qmk.model.KeyboardInfo
 import pl.ejdev.qmk.service.SupportedKeyboardsService
 import pl.ejdev.qmk.state.WindowState
 import pl.ejdev.qmk.utils.IntellijIdeaResourceLoader
+import pl.ejdev.qmk.utils.listeners.addKeyPressListener
 import pl.ejdev.qmk.window.components.*
-import javax.swing.Box
+import pl.ejdev.qmk.window.components.PaneTabbed
+import pl.ejdev.qmk.window.components.createKeyCaps
+import pl.ejdev.qmk.window.components.uploadFilePanel
+import pl.ejdev.qmk.window.ui.TIME_NEW_ROMAN_18
+import java.awt.event.KeyEvent
+import javax.swing.*
+import kotlin.concurrent.thread
+
 
 private const val KEYCODES_PATH = "keycodes/keycodes.csv"
 private const val KEYBOARD_INDEX = 0
@@ -24,31 +32,65 @@ private const val KEYBOARD_INDEX = 0
 internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAware {
     private val keyboardCache: List<KeyboardInfo> = SupportedKeyboardsService.loadAllSupportedKeyboards()
     private val layoutNames = keyboardCache.map { it.keyboard to it.layouts }
-    private val keyCodes = KeyCodeParser.parse(IntellijIdeaResourceLoader.getResource(KEYCODES_PATH))
+    private val keyCodes =
+        KeyCodeParser.parse(IntellijIdeaResourceLoader.getResource(KEYCODES_PATH).getOrNull().orEmpty())
     private val windowState: WindowState = WindowState()
+    private var error: String = ""
 
     init {
         applySystemConfigFileSettings()
-        windowState.lines = keyboardFileLines()
+        keyboardFileLines { windowState.lines = it }
         windowState.caps = loadKeyboardCaps()
     }
 
     private lateinit var filePathsComboBox: Cell<ComboBox<String>>
-
     private lateinit var keyboardCell: Cell<Box>
+
     val content = panel {
         row {
-            filePathsComboBox = comboBox(keyboardCache.map(KeyboardInfo::keyboard)).onChange { selected ->
-                refreshState(selected.toString())
-                refreshKeyboard()
+            label(error).applyToComponent {
+                font = TIME_NEW_ROMAN_18
+                text = error
             }
         }
         row {
-            cell(vbox { uploadFilePanel(action = ::importConfig) })
+            textField().apply {
+                var text = component.text
+                component.addKeyPressListener(
+                    press = {
+                        text += it.keyChar
+                        filePathsComboBox.apply {
+                            thread { findKeyboardInfo(text) }
+                        }
+                    },
+                    release = {
+                        if (it.keyCode == KeyEvent.VK_BACK_SPACE) {
+                            text = text.substring(0, text.length - 2)
+                            filePathsComboBox.apply {
+                                thread { findKeyboardInfo(text) }
+                            }
+                        }
+                    }
+                )
+            }
+            filePathsComboBox = comboBox(keyboardCache.map(KeyboardInfo::keyboard))
+                .onChange { selected ->
+                    refreshState(keyboardName = selected.toString())
+                    refreshKeyboard()
+                }
         }
+        row { cell(vbox { uploadFilePanel(action = ::importConfig) }) }
         row {
             keyboardCell = cell(createKeyCaps(windowState.caps, defaultLayout, keyCodes).addToKeyboardBox())
         }
+    }
+
+    private fun Cell<ComboBox<String>>.findKeyboardInfo(text: String) {
+        val keyboards = keyboardCache.map(KeyboardInfo::keyboard)
+        this.component.removeAllItems()
+        keyboards
+            .filter { keyboard -> keyboard.contains(text) }
+            .forEach { component.addItem(it) }
     }
 
     private fun applySystemConfigFileSettings() {
@@ -64,11 +106,17 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
         }
     }
 
-    private fun List<KeyCaps>.addToKeyboardBox(): Box =
+    private fun List<JPanel>.addToKeyboardBox(): Box =
         Box.createVerticalBox().also { keyboard -> this.forEach { keyboardCap -> keyboard.add(keyboardCap) } }
 
-    private fun keyboardFileLines(): List<String> =
-        IntellijIdeaResourceLoader.getResource("keyboards/${windowState.keyboard}/info.json")
+    private fun keyboardFileLines(call: (List<String>) -> Unit): Result<List<String>> =
+        if (windowState.keyboard.isEmpty()) {
+            error = "No keyboard set"
+            Result.success(emptyList())
+        } else IntellijIdeaResourceLoader
+            .getResource("keyboards/${windowState.keyboard}/info.json")
+            .onSuccess(call)
+            .onFailure { error = "${it.message}" }
 
     private fun loadKeyboardCaps(): List<KeyboardCap> =
         KeyboardLoader
@@ -76,11 +124,11 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
             ?.caps
             .orEmpty()
 
-    private fun refreshState(selected: String) {
+    private fun refreshState(keyboardName: String) {
         windowState.apply {
-            keyboard = selected
-            lines = keyboardFileLines()
-            layout = layoutNames.first { it.first == selected }.second.first()
+            keyboard = keyboardName
+            keyboardFileLines { lines = it }
+            layout = layoutNames.first { it.first == keyboardName }.second.first()
             caps = loadKeyboardCaps()
         }
     }
@@ -102,5 +150,3 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
     @Suppress("UnstableApiUsage")
     override fun mayUseIndices(): Boolean = false
 }
-
-

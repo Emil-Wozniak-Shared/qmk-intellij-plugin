@@ -11,7 +11,10 @@ fun <T : Any> Cell<ComboBox<T>>.onChange(action: (Any) -> Unit) = apply {
     applyToComponent {
         addActionListener { event ->
             if (event.actionCommand == "comboBoxChanged") {
-                action(requireNotNull((event.source as ComboBox<*>).selectedItem))
+                when (val item = (event.source as ComboBox<*>).selectedItem) {
+                    null -> {}
+                    else -> action(item)
+                }
             }
         }
     }
