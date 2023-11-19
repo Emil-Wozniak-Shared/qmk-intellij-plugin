@@ -36,7 +36,11 @@ fun label(text: String, ctx: JLabel.() -> Unit) = JLabel(text).apply(ctx)
 
 fun fileChooser(parent: JComponent? = null, onSelect: JFileChooser.(File) -> Unit) = JFileChooser()
     .apply { showOpenDialog(parent ?: this) }
-    .apply { onSelect(selectedFile) }
+    .apply {
+        if (selectedFile != null) {
+            onSelect(selectedFile)
+        }
+    }
 
 fun vbox(ctx: JBBox.() -> Unit): JBBox = JBBox.createVerticalBox().apply(ctx)
 

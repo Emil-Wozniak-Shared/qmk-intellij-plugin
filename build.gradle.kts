@@ -20,7 +20,7 @@ intellij {
     plugins.set(listOf(/* Plugin Dependencies */))
     dependencies {
         api(project(":api"))
-        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
+        implementation("com.beust:klaxon:5.6")
     }
 }
 

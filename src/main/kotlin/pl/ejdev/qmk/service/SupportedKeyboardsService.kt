@@ -26,7 +26,8 @@ object SupportedKeyboardsService {
                     }
                     .filter { info -> info.layouts.all { it != "null" } }
             }
-            .getOrNull().orEmpty()
+            .getOrNull()
+            .orEmpty()
     }
 
     private fun replaceSurrondingDetails(path: String, infoFile: String) = path

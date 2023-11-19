@@ -2,7 +2,8 @@ package pl.ejdev.qmk.window.components
 
 import com.intellij.ui.JBColor
 import pl.ejdev.qmk.keycodes.KeyCode
-import pl.ejdev.qmk.model.KeyboardCap
+import pl.ejdev.qmk.models.layouts.LayoutCell
+import pl.ejdev.qmk.state.WindowState
 import pl.ejdev.qmk.window.ui.KEYCAP_DARK
 import pl.ejdev.qmk.window.ui.KEYCAP_LIGHT
 import java.awt.*
@@ -10,17 +11,19 @@ import javax.swing.JPanel
 import kotlin.math.roundToInt
 
 internal fun createKeyCaps(
-    caps: List<KeyboardCap>,
     layers: List<List<String>>,
     keyCodes: List<KeyCode>,
+    windowState: WindowState
 ): List<JPanel> {
-    if (caps.isEmpty() || layers.isEmpty() || keyCodes.isEmpty()) {
+    if (windowState.layouts.isEmpty() || layers.isEmpty() || keyCodes.isEmpty()) {
         return listOf(JPanel())
     }
-    val groups = caps.groupBy { it.matrix[1] }
+    val activeLayout = windowState.layouts.firstOrNull { it.active } ?: return listOf(JPanel())
+    val selectedLayout = activeLayout.layouts.firstOrNull { it.active } ?: return listOf(JPanel())
     val size = 60
-    val width = caps.maxOf { it.w }
-    val height = caps.maxOf { it.h }
+    val width = selectedLayout.cells.maxOf { it.w }
+    val height = selectedLayout.cells.maxOf { it.h }
+    val groups =  selectedLayout.cells.groupBy { it.matrix }
     val keyCapLayers = layers.map { layer ->
         KeyCaps(
             width = (width * (size * size) * groups.maxOf { it.value.size }).roundToInt(),
@@ -38,12 +41,12 @@ internal fun createKeyCaps(
     }
 }
 
-private fun KeyCaps.addKeyCaps(keyCapGroup: List<KeyboardCap>, size: Int) =
-    keyCapGroup.forEach { keyCap ->
-        val x: Int = (keyCap.x * size).roundToInt()
-        val y: Int = (keyCap.y * size).roundToInt()
-        val w: Int = (keyCap.w * size).roundToInt()
-        val h: Int = (keyCap.h * size).roundToInt()
+private fun KeyCaps.addKeyCaps(cellGroups: List<LayoutCell>, size: Int) =
+    cellGroups.forEach { cell ->
+        val x: Int = (cell.x * size).roundToInt()
+        val y: Int = (cell.y * size).roundToInt()
+        val w: Int = (cell.w * size).roundToInt()
+        val h: Int = (cell.h * size).roundToInt()
         this.createKeyCap(x, y, w, h)
     }
 

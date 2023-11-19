@@ -10,37 +10,32 @@ import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.panel
 import pl.ejdev.qmk.KeyboardLoader
 import pl.ejdev.qmk.keycodes.KeyCodeParser
-import pl.ejdev.qmk.model.KeyboardCap
-import pl.ejdev.qmk.model.KeyboardInfo
-import pl.ejdev.qmk.service.SupportedKeyboardsService
+import pl.ejdev.qmk.service.LayoutService
 import pl.ejdev.qmk.state.WindowState
 import pl.ejdev.qmk.utils.IntellijIdeaResourceLoader
 import pl.ejdev.qmk.utils.listeners.addKeyPressListener
-import pl.ejdev.qmk.window.components.*
-import pl.ejdev.qmk.window.components.PaneTabbed
 import pl.ejdev.qmk.window.components.createKeyCaps
+import pl.ejdev.qmk.window.components.onChange
 import pl.ejdev.qmk.window.components.uploadFilePanel
+import pl.ejdev.qmk.window.components.vbox
 import pl.ejdev.qmk.window.ui.TIME_NEW_ROMAN_18
-import java.awt.event.KeyEvent
-import javax.swing.*
+import java.awt.event.KeyEvent.VK_BACK_SPACE
+import javax.swing.Box
+import javax.swing.JPanel
 import kotlin.concurrent.thread
-
 
 private const val KEYCODES_PATH = "keycodes/keycodes.csv"
 private const val KEYBOARD_INDEX = 0
 
 internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAware {
-    private val keyboardCache: List<KeyboardInfo> = SupportedKeyboardsService.loadAllSupportedKeyboards()
-    private val layoutNames = keyboardCache.map { it.keyboard to it.layouts }
     private val keyCodes =
         KeyCodeParser.parse(IntellijIdeaResourceLoader.getResource(KEYCODES_PATH).getOrNull().orEmpty())
     private val windowState: WindowState = WindowState()
     private var error: String = ""
 
     init {
-        applySystemConfigFileSettings()
+        LayoutService.fromHomeDir().let { windowState.layouts = it }
         keyboardFileLines { windowState.lines = it }
-        windowState.caps = loadKeyboardCaps()
     }
 
     private lateinit var filePathsComboBox: Cell<ComboBox<String>>
@@ -64,7 +59,7 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
                         }
                     },
                     release = {
-                        if (it.keyCode == KeyEvent.VK_BACK_SPACE) {
+                        if (it.keyCode == VK_BACK_SPACE) {
                             text = text.substring(0, text.length - 2)
                             filePathsComboBox.apply {
                                 thread { findKeyboardInfo(text) }
@@ -73,7 +68,7 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
                     }
                 )
             }
-            filePathsComboBox = comboBox(keyboardCache.map(KeyboardInfo::keyboard))
+            filePathsComboBox = comboBox(windowState.layouts.map { it.filename })
                 .onChange { selected ->
                     refreshState(keyboardName = selected.toString())
                     refreshKeyboard()
@@ -81,28 +76,22 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
         }
         row { cell(vbox { uploadFilePanel(action = ::importConfig) }) }
         row {
-            keyboardCell = cell(createKeyCaps(windowState.caps, defaultLayout, keyCodes).addToKeyboardBox())
+            keyboardCell = cell(
+                createKeyCaps(
+                    defaultLayout,
+                    keyCodes,
+                    windowState
+                ).addToKeyboardBox()
+            )
         }
     }
 
     private fun Cell<ComboBox<String>>.findKeyboardInfo(text: String) {
-        val keyboards = keyboardCache.map(KeyboardInfo::keyboard)
-        this.component.removeAllItems()
-        keyboards
-            .filter { keyboard -> keyboard.contains(text) }
-            .forEach { component.addItem(it) }
-    }
-
-    private fun applySystemConfigFileSettings() {
-        KeyboardLoader.configFromSystem()?.let { settings ->
-            keyboardCache
-                .filter { cache -> settings.keyboard.contains(cache.keyboard) }
-                .firstOrNull { cache -> cache.layouts.isNotEmpty() }
-                ?.let { info ->
-                    windowState.keyboard = info.keyboard
-                    windowState.layout = settings.layout
-                }
-            windowState.layers = settings.layers
+        keyboardFileLines {
+            windowState.lines = it.filter { keyboard -> keyboard.contains(text) }
+        }.onSuccess {
+            this.component.removeAllItems()
+            it.filter { keyboard -> keyboard.contains(text) }.forEach { component.addItem(it) }
         }
     }
 
@@ -118,18 +107,18 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
             .onSuccess(call)
             .onFailure { error = "${it.message}" }
 
-    private fun loadKeyboardCaps(): List<KeyboardCap> =
-        KeyboardLoader
-            .load(windowState.lines, windowState.layout)
-            ?.caps
-            .orEmpty()
-
     private fun refreshState(keyboardName: String) {
         windowState.apply {
+            layouts = layouts.map {
+                if (it.filename == keyboardName) {
+                    LayoutService.setActiveLayout(it)
+                    it.copy(
+                        active = true,
+                        layouts = it.layouts.mapIndexed { index, layout -> layout.copy(active = index == 0) }
+                    )
+                } else it.copy(active = false, layouts = it.layouts.map { it.copy(active = false) })
+            }
             keyboard = keyboardName
-            keyboardFileLines { lines = it }
-            layout = layoutNames.first { it.first == keyboardName }.second.first()
-            caps = loadKeyboardCaps()
         }
     }
 
@@ -143,7 +132,7 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
         keyboardCell.applyToComponent {
             remove(KEYBOARD_INDEX)
             repaint()
-            add(createKeyCaps(windowState.caps, windowState.layers, keyCodes).addToKeyboardBox())
+            add(createKeyCaps(windowState.layers, keyCodes, windowState).addToKeyboardBox())
         }
     }
 

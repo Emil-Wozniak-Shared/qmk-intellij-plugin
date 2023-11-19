@@ -43,10 +43,10 @@ internal object KeyboardCapParser {
         .filter { it.name.endsWith(JSON_FILE_EXT) }
         .map(File::readLines)
         .mapNotNull { it.toJsonObject() }
-        .filter { json -> json[KEYBOARD] != null && json[LAYOUT] != null && json[LAYERS] != null }
+        .filter { json -> json["layouts"] != null }
         .map { json ->
             val keyboard = json.text(KEYBOARD)
-            val layout = json.text(LAYOUT)
+            val layout = json.text("layouts")
             val layers = json.list<JsonArray<String>>(LAYERS)
                 .map(JsonArray<String>::value)
             SystemConfigSettings(keyboard, layout, layers)
