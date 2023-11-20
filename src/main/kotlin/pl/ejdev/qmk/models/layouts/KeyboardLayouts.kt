@@ -1,15 +1,17 @@
 package pl.ejdev.qmk.models.layouts
 
 import com.beust.klaxon.JsonObject
-import pl.ejdev.qmk.utils.io.safeDouble
-import pl.ejdev.qmk.utils.io.text
+import pl.ejdev.qmk.utils.io.json.safeDouble
+import pl.ejdev.qmk.utils.io.json.text
 
-internal data class Layouts(
+internal data class KeyboardLayouts(
     val filename: String,
     val meta: LayoutMeta,
     val layouts: List<Layout>,
     val active: Boolean
-)
+) {
+    val rawName = filename.replace(".json", "")
+}
 
 internal data class LayoutMeta(
     val keyboardName: String?,

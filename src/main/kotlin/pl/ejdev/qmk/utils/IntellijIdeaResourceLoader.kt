@@ -7,6 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 internal object IntellijIdeaResourceLoader {
+    private fun<T> T?.orRaise(message: String): T = this ?: error(message)
 
     fun getResource(path: String): Result<MutableList<String>> =
         PluginManager.getPlugins().runCatching {

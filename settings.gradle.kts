@@ -6,4 +6,4 @@ pluginManagement {
 }
 
 rootProject.name = "Qmk"
-include("api")
+

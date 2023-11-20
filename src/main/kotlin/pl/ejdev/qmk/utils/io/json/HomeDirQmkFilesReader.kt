@@ -1,4 +1,4 @@
-package pl.ejdev.qmk.utils.io
+package pl.ejdev.qmk.utils.io.json
 
 import com.intellij.openapi.Disposable
 import pl.ejdev.qmk.models.layouts.LayoutSettings

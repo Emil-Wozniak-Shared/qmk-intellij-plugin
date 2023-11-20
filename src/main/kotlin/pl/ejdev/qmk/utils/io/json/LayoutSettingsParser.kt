@@ -1,4 +1,4 @@
-package pl.ejdev.qmk.utils.io
+package pl.ejdev.qmk.utils.io.json
 
 import pl.ejdev.qmk.models.layouts.LayoutSettings
 import java.io.File

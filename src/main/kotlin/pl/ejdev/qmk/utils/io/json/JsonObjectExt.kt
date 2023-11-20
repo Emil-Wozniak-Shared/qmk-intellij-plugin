@@ -1,4 +1,4 @@
-package pl.ejdev.qmk.utils
+package pl.ejdev.qmk.utils.io.json
 
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject

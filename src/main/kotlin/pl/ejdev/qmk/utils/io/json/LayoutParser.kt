@@ -1,10 +1,9 @@
-package pl.ejdev.qmk.utils.io
+package pl.ejdev.qmk.utils.io.json
 
 import com.beust.klaxon.JsonObject
 import pl.ejdev.qmk.models.layouts.Layout
 import pl.ejdev.qmk.models.layouts.LayoutCell
 import pl.ejdev.qmk.models.layouts.LayoutMeta
-import pl.ejdev.qmk.utils.`object`
 import java.io.File
 
 internal object LayoutParser {

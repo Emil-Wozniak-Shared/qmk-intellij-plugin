@@ -19,7 +19,6 @@ intellij {
 
     plugins.set(listOf(/* Plugin Dependencies */))
     dependencies {
-        api(project(":api"))
         implementation("com.beust:klaxon:5.6")
     }
 }

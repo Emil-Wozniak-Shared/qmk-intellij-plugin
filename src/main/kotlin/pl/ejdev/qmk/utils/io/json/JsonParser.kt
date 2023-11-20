@@ -1,4 +1,4 @@
-package pl.ejdev.qmk.utils.io
+package pl.ejdev.qmk.utils.io.json
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
@@ -8,7 +8,7 @@ private const val QUOTED_SLASHES = "\"//\""
 private const val HTTP = "http"
 private const val NEW_LINE = "\n"
 
-private val parser = Parser.default()
+internal val parser = Parser.default()
 private val klaxon = Klaxon()
 
 fun  Any.toJson(): String= klaxon.toJsonString(this)
