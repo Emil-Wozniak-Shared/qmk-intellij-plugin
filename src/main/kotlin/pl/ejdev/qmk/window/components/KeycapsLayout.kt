@@ -13,16 +13,15 @@ import javax.swing.Box
 import javax.swing.JPanel
 import kotlin.math.roundToInt
 
-
 internal fun keyCapsPanel(
     layers: List<List<String>>,
     keyCodes: List<KeyCode>,
     windowState: WindowState
 ): Box {
-    if (windowState.layouts.isEmpty() || layers.isEmpty() || keyCodes.isEmpty()) {
+    if (windowState.keyboards.isEmpty() || layers.isEmpty() || keyCodes.isEmpty()) {
         return Box.createVerticalBox()
     }
-    val activeLayout = windowState.layouts.firstOrNull { it.active } ?: return Box.createVerticalBox()
+    val activeLayout = windowState.keyboards.firstOrNull { it.active } ?: return Box.createVerticalBox()
     val selectedLayout = activeLayout.layouts.firstOrNull { it.active } ?: return Box.createVerticalBox()
     val size = 90
     val width = selectedLayout.cells.maxOf { it.w }

@@ -1,6 +1,6 @@
 package pl.ejdev.qmk.service
 
-import pl.ejdev.qmk.models.layouts.KeyboardLayouts
+import pl.ejdev.qmk.models.layouts.Keyboard
 import pl.ejdev.qmk.models.layouts.LayoutSettings
 import pl.ejdev.qmk.utils.io.json.HomeDirQmkFilesReader
 import pl.ejdev.qmk.utils.io.json.LayoutParser
@@ -8,7 +8,7 @@ import pl.ejdev.qmk.utils.io.json.LayoutSettingsParser
 import pl.ejdev.qmk.utils.nameWithout
 import java.io.File
 
-internal object LayoutService {
+internal object KeyboardService {
     private const val LAYOUTS: String = "layouts"
     private lateinit var activeLayout: LayoutSettings.Layout
     private val qmkHomeDir: File = HomeDirQmkFilesReader.get()
@@ -18,7 +18,7 @@ internal object LayoutService {
         activeLayout = settings().layout
     }
 
-    fun fromHomeDir(): List<KeyboardLayouts> =
+    fun fromHomeDir(): List<Keyboard> =
         qmkHomeDir
             .listFiles()
             .orEmpty()
@@ -27,7 +27,7 @@ internal object LayoutService {
             .orEmpty()
             .filter { it.name.endsWith(".json") }
             .map { jsonFile ->
-                KeyboardLayouts(
+                Keyboard(
                     filename = jsonFile.name,
                     meta = LayoutParser.parseMeta(jsonFile),
                     layouts = LayoutParser.parse(jsonFile, activeLayout.selected),
@@ -35,11 +35,11 @@ internal object LayoutService {
                 )
             }
 
-    fun setActiveLayout(layouts: KeyboardLayouts) {
+    fun setActiveKeyboard(keyboard: Keyboard) {
         val settings = settings().copy(
             layout = LayoutSettings.Layout(
-                file = layouts.rawName,
-                selected = layouts.layouts.first().name
+                file = keyboard.rawName,
+                selected = keyboard.layouts.first().name
             )
         )
         HomeDirQmkFilesReader.setActiveLayoutFile(settings)

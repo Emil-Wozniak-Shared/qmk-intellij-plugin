@@ -4,7 +4,7 @@ import com.beust.klaxon.JsonObject
 import pl.ejdev.qmk.utils.io.json.safeDouble
 import pl.ejdev.qmk.utils.io.json.text
 
-internal data class KeyboardLayouts(
+internal data class Keyboard(
     val filename: String,
     val meta: LayoutMeta,
     val layouts: List<Layout>,
