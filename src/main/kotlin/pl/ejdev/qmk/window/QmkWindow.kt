@@ -6,6 +6,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbUtil
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.ui.components.JBBox
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.panel
 import pl.ejdev.qmk.service.KeyboardService
@@ -13,8 +14,6 @@ import pl.ejdev.qmk.state.WindowState
 import pl.ejdev.qmk.utils.io.csv.KeyCodeLoader
 import pl.ejdev.qmk.window.components.*
 import pl.ejdev.qmk.window.ui.TIME_NEW_ROMAN_18
-import javax.swing.Box
-import javax.swing.JLabel
 import javax.swing.JSeparator
 
 private const val KEYBOARD_INDEX = 0
@@ -29,18 +28,19 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
     }
 
     private lateinit var filePathsComboBox: ComboBox<String>
-    private lateinit var keyboardCell: Cell<Box>
+    private lateinit var keyboardCell: Cell<KeyCapsPanel>
+    private lateinit var layersSwitchButtons: Cell<JBBox>
 
     val content = panel {
         row { errorLabel(error) }
         row { cell(JSeparator()) }
         row {
             innerRow {
-                add(jlabel("Select keyboard", TIME_NEW_ROMAN_18))
+                this + jlabel("Select keyboard", TIME_NEW_ROMAN_18)
                 filePathsComboBox = keyboardLayoutsComboBox(windowState, ::refreshState, ::refreshKeyboard)
             }
             innerRow {
-                add(jlabel("Find keyboard", TIME_NEW_ROMAN_18))
+                this + jlabel("Find keyboard", TIME_NEW_ROMAN_18)
                 column {
                     ghButton()
                     searchTextField()
@@ -50,6 +50,10 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
         row { cell(JSeparator()) }
         row { label("Upload layers").applyToComponent { font = TIME_NEW_ROMAN_18 } }
         row { uploadLayersBox(windowState, ::refreshKeyboard) }
+        row {
+            label("Switch layer").applyToComponent { font = TIME_NEW_ROMAN_18 }
+            layersSwitchButtons = layerSwitcher(windowState.layers.size, ::layerSwitch)
+        }
         row { keyboardCell = cell(keyCapsPanel(defaultLayout, keyCodes, windowState)) }
     }
 
@@ -63,10 +67,23 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
         keyboardCell.applyToComponent {
             remove(KEYBOARD_INDEX)
             repaint()
-            add(keyCapsPanel(windowState.layers, keyCodes, windowState))
+            this + keyCapsPanel(windowState.layers, keyCodes, windowState)
+        }
+    }
+
+    private fun layerSwitch(layerIndex: Int) {
+        keyboardCell.applyToComponent {
+            this.layers.mapIndexed { index, layer ->
+                layer.isVisible = index == layerIndex
+                layer.repaint()
+            }
         }
     }
 
     @Suppress("UnstableApiUsage")
     override fun mayUseIndices(): Boolean = false
 }
+
+
+
+

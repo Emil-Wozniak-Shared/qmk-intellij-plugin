@@ -2,25 +2,24 @@ package pl.ejdev.qmk.window.components
 
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBBox
-import com.intellij.ui.dsl.builder.Cell
-import pl.ejdev.qmk.window.ui.TIME_NEW_ROMAN_18
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
 import java.io.File
 import javax.swing.*
 
 fun <T : Any> ComboBox<T>.onChange(action: (Any) -> Unit) = apply {
-        addActionListener { event ->
-            if (event.actionCommand == "comboBoxChanged") {
-                when (val item = (event.source as ComboBox<*>).selectedItem) {
-                    null -> {}
-                    else -> action(item)
-                }
+    addActionListener { event ->
+        if (event.actionCommand == "comboBoxChanged") {
+            when (val item = (event.source as ComboBox<*>).selectedItem) {
+                null -> {}
+                else -> action(item)
             }
         }
+    }
 }
 
-fun button(name: String, ctx: JButton.() -> Unit) = JButton(name).apply(ctx)
+fun jButton(name: String, ctx: JButton.() -> Unit) = JButton(name).apply(ctx)
 
 fun textField(ctx: JTextField.() -> Unit) = JTextField().apply(ctx)
 
@@ -53,3 +52,15 @@ operator fun JComponent.plus(component: JComponent) {
     this.add(component)
 }
 
+class BoundryDsl(
+    var x: Int = 0,
+    var y: Int = 0,
+    var width: Int = 0,
+    var height: Int = 0,
+)
+
+fun Component.bounds(dsl: BoundryDsl.() -> Unit) {
+    BoundryDsl().apply(dsl).let {
+        this.setBounds(it.x  ,it.y,it.width, it.height)
+    }
+}

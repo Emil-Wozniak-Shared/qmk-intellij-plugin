@@ -10,6 +10,7 @@ import pl.ejdev.qmk.window.ui.KEYCAP_LIGHT
 import java.awt.*
 import java.awt.font.FontRenderContext
 import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JPanel
 import kotlin.math.roundToInt
 
@@ -17,58 +18,86 @@ internal fun keyCapsPanel(
     layers: List<List<String>>,
     keyCodes: List<KeyCode>,
     windowState: WindowState
-): Box {
+): KeyCapsPanel {
     if (windowState.keyboards.isEmpty() || layers.isEmpty() || keyCodes.isEmpty()) {
-        return Box.createVerticalBox()
+        return KeyCapsPanel.Empty
     }
-    val activeLayout = windowState.keyboards.firstOrNull { it.active } ?: return Box.createVerticalBox()
-    val selectedLayout = activeLayout.layouts.firstOrNull { it.active } ?: return Box.createVerticalBox()
+    val activeLayout = windowState.keyboards.firstOrNull { it.active } ?: return KeyCapsPanel.Empty
+    val selectedLayout = activeLayout.layouts.firstOrNull { it.active } ?: return KeyCapsPanel.Empty
     val size = 90
     val width = selectedLayout.cells.maxOf { it.w }
     val height = selectedLayout.cells.maxOf { it.h }
     val groups = selectedLayout.cells.groupBy { it.matrix }
-    val keyCapLayers = layers.map { layer ->
+    val keyCapLayers = layers.mapIndexed { index, layer ->
         KeyCaps(
             width = (width * (size * size) * groups.maxOf { it.value.size }).roundToInt(),
             height = (height * (size * size) * groups.size).roundToInt(),
-            labels = createLabels(layer, keyCodes)
+            labels = createLabels(layer, keyCodes),
+            visible = index == 0
         )
     }
 
-    // TODO select layer
-    val caps = keyCapLayers.subList(0, 1).mapIndexed { _, keyCaps ->
-        keyCaps.apply {
-            groups.values.map { group ->
-                addKeyCaps(group, size)
+    val caps: List<KeyCaps> = keyCapLayers
+        // TODO select layer
+        .mapIndexed { _, keyCaps ->
+            keyCaps.apply {
+                groups.values.map { group ->
+                    addKeyCaps(group, size)
+                }
             }
         }
+
+    return KeyCapsPanel(caps)
+}
+
+internal class KeyCapsPanel(
+    val layers: List<KeyCaps> = listOf()
+) : Box(BoxLayout.Y_AXIS) {
+    init {
+        layers.forEach {
+            this + it
+        }
     }
-    return Box.createVerticalBox().also { keyboard -> caps.forEach { keyboardCap -> keyboard.add(keyboardCap) } }
+
+    companion object {
+        val Empty = KeyCapsPanel()
+    }
 }
 
 private fun KeyCaps.addKeyCaps(cellGroups: List<LayoutCell>, size: Int) =
     cellGroups.forEach { cell ->
-        val x: Int = (cell.x * size).roundToInt()
-        val y: Int = (cell.y * size).roundToInt()
-        val w: Int = (cell.w * size).roundToInt()
-        val h: Int = (cell.h * size).roundToInt()
-        this.createKeyCap(x, y, w, h)
+        val shape = rectangle (cell, size)
+        this.addToKeymap(shape)
     }
 
+private fun rectangle(cell: LayoutCell, size: Int): Rectangle {
+    val x: Int = (cell.x * size).roundToInt()
+    val y: Int = (cell.y * size).roundToInt()
+    val w: Int = (cell.w * size).roundToInt()
+    val h: Int = (cell.h * size).roundToInt()
+    return Rectangle(x, y, w, h)
+}
+
 private fun createLabels(qmkLayout: List<String>, keyCodes: List<KeyCode>): List<String> =
-    qmkLayout.map { layout -> keyCodes.find { keyCode -> keyCode.key == layout }?.description ?: layout }
+    qmkLayout.map { layout ->
+        keyCodes
+            .find { keyCode -> keyCode.key == layout }
+            ?.description
+            ?: layout
+    }
 
 internal class KeyCaps(
     private val width: Int = 100,
     private val height: Int = 100,
-    private val labels: List<String>
+    private val labels: List<String>,
+    private var visible: Boolean = true
 ) : JPanel() {
+    init {
+        isVisible = visible
+    }
 
     private val keymap: MutableList<Rectangle> = mutableListOf()
-    fun createKeyCap(x: Int, y: Int, width: Int, height: Int) {
-        val keycap = Rectangle(x, y, width, height)
-        keymap.add(keycap)
-    }
+    internal fun addToKeymap(shape: Rectangle) = keymap.add(shape)
 
     override fun getPreferredSize(): Dimension = Dimension(width, height)
 

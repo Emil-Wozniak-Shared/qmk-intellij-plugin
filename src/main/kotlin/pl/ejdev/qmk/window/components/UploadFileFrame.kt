@@ -1,18 +1,17 @@
 package pl.ejdev.qmk.window.components
 
 import com.intellij.ui.components.JBBox
+import pl.ejdev.qmk.utils.joinByNewLine
 import pl.ejdev.qmk.window.ui.TIME_NEW_ROMAN_14
 import java.io.File
 import javax.swing.JOptionPane.showMessageDialog
 import javax.swing.JPanel
 import kotlin.concurrent.thread
 
-private const val READ_FILE_MESSAGE = "File is reading...!!!"
 private const val ELEMENT_WIDTH = 125
 private const val ELEMENT_HEIGHT = 31
 private const val Y_DIMENSION = 26
 private const val START_POINT = 10
-private const val NEW_LINE = "\n"
 
 internal fun JBBox.uploadFilePanel(
     prefWidth: Int = ELEMENT_WIDTH * 4,
@@ -28,34 +27,50 @@ internal fun JBBox.uploadFilePanel(
     }
 
     val filenameTextField = textField {
-        setBounds(125, Y_DIMENSION, ELEMENT_WIDTH, ELEMENT_HEIGHT)
+        bounds {
+            x = 125
+            y = Y_DIMENSION
+            width = ELEMENT_WIDTH
+            height = ELEMENT_HEIGHT
+        }
     }
 
     this.setLayout(null)
     this + filenameTextField
-    this + button(name = "Import") {
-        setBounds(258 + ELEMENT_WIDTH, Y_DIMENSION, 90, ELEMENT_HEIGHT)
+    this + jButton(name = "Import") {
+        bounds {
+            x = 258 + ELEMENT_WIDTH
+            y = Y_DIMENSION
+            width = 90
+            height = ELEMENT_HEIGHT
+        }
         addActionListener {
             thread {
                 filename
                     .let { it ?: error("File not found") }
-                    .also { checkSupportedType(it) }
-                    .let { File(it) }
+                    .also(::checkSupportedType)
+                    .let(::File)
                     .runCatching(File::readLines)
-                    .also { showMessageDialog(rootPane, READ_FILE_MESSAGE) }
                     .onFailure { showMessageDialog(rootPane, "Error while reading File : ${it.message}") }
-                    .map { it.joinToString(NEW_LINE) }
+                    .map(List<String>::joinByNewLine)
                     .map(action)
             }
         }
     }
+
     this + label("Keyboard setting") {
         isVisible = true
         setBounds(START_POINT, Y_DIMENSION, ELEMENT_WIDTH, ELEMENT_HEIGHT)
         setFont(TIME_NEW_ROMAN_14)
     }
-    this + button(name = "Browse") {
-        setBounds(258, Y_DIMENSION, ELEMENT_WIDTH, ELEMENT_HEIGHT)
+
+    this + jButton(name = "Browse") {
+        bounds {
+            x = 258
+            y = Y_DIMENSION
+            width = ELEMENT_WIDTH
+            height = ELEMENT_HEIGHT
+        }
         addActionListener {
             fileChooser {
                 val path = it.absolutePath
@@ -63,8 +78,8 @@ internal fun JBBox.uploadFilePanel(
                 filename = path
             }
         }
-        setFont(TIME_NEW_ROMAN_14)
+        font = TIME_NEW_ROMAN_14
     }
-}.also { add(it) }
+}.also(::add)
 
 
