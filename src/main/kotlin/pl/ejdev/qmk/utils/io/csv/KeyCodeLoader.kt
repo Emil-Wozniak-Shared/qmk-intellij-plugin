@@ -7,12 +7,14 @@ private const val SEPARATOR = ";"
 
 object KeyCodeLoader {
 
-    fun load(): List<KeyCode> = IntellijIdeaResourceLoader.getResource(KEYCODES_PATH)
-        .getOrNull().orEmpty()
-        .asSequence()
-        .map { it.split(SEPARATOR) }
-        .map(KeyCode.Companion::from)
-        .toList()
+    fun load(): List<KeyCode> =
+        IntellijIdeaResourceLoader.getResource(KEYCODES_PATH)
+            .getOrNull().orEmpty()
+            .asSequence()
+            .drop(1)
+            .map { it.split(SEPARATOR) }
+            .map(KeyCode::from)
+            .toList()
 }
 
 data class KeyCode(
@@ -21,10 +23,17 @@ data class KeyCode(
     val description: String,
 ) {
     companion object {
-        fun from(chunks: List<String>): KeyCode = KeyCode(
-            key = chunks[0],
-            aliases = chunks[1],
-            description = chunks[2]
-        )
+        fun from(chunks: List<String>): KeyCode {
+            val (key, aliases, description) = chunks
+            return KeyCode(
+                key = key,
+                aliases = aliases,
+                description = description.formatNOOP()
+                    .replace(" and ", " / ")
+                    .replace("KC_".toRegex(), "")
+            )
+        }
+
+        private fun String.formatNOOP() = if (!contains("(NOOP)")) this else "NOOP"
     }
 }

@@ -1,5 +1,6 @@
 package pl.ejdev.qmk.window.components
 
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import pl.ejdev.qmk.models.layouts.LayoutCell
 import pl.ejdev.qmk.state.WindowState
@@ -7,12 +8,13 @@ import pl.ejdev.qmk.utils.io.csv.KeyCode
 import pl.ejdev.qmk.window.ui.DEJAVU_14_BOLD
 import pl.ejdev.qmk.window.ui.KEYCAP_DARK
 import pl.ejdev.qmk.window.ui.KEYCAP_LIGHT
+import pl.ejdev.qmk.window.ui.PluginIcons
 import java.awt.*
 import java.awt.font.FontRenderContext
-import javax.swing.Box
-import javax.swing.BoxLayout
-import javax.swing.JPanel
+import java.lang.Math.round
+import javax.swing.*
 import kotlin.math.roundToInt
+
 
 internal fun keyCapsPanel(
     layers: List<List<String>>,
@@ -38,7 +40,6 @@ internal fun keyCapsPanel(
     }
 
     val caps: List<KeyCaps> = keyCapLayers
-        // TODO select layer
         .mapIndexed { _, keyCaps ->
             keyCaps.apply {
                 groups.values.map { group ->
@@ -66,7 +67,7 @@ internal class KeyCapsPanel(
 
 private fun KeyCaps.addKeyCaps(cellGroups: List<LayoutCell>, size: Int) =
     cellGroups.forEach { cell ->
-        val shape = rectangle (cell, size)
+        val shape = rectangle(cell, size)
         this.addToKeymap(shape)
     }
 
@@ -104,25 +105,34 @@ internal class KeyCaps(
     override fun paintComponent(graphics: Graphics) {
         super.paintComponent(graphics)
         keymap
-            .onEach {
-                graphics.in2D {
-                    drawBox(it, JBColor.WHITE, 0)
-                    drawBox(it, background = KEYCAP_DARK, padding = 1)
-                    drawBox(it, background = KEYCAP_LIGHT, padding = 4)
-                }
-            }
             .onEachIndexed { index, rectangle ->
-                if (labels.isNotEmpty() && labels.size >= index) {
+                val isLabels = labels.isNotEmpty() && labels.size >= index
+                val isNOOP = isLabels && labels[index].contains("NOOP")
+                graphics.in2D {
+                    drawBox(rectangle, JBColor.WHITE, 0)
+                    drawBox(rectangle, background = if (isNOOP) JBColor.DARK_GRAY else KEYCAP_DARK, padding = 1)
+                    drawBox(rectangle, background = if (isNOOP) JBColor.LIGHT_GRAY else KEYCAP_LIGHT, padding = 4)
+                }
+                if (isLabels) {
                     graphics.in2D {
-                        centerString(rectangle = rectangle, text = getLabel(index), font = DEJAVU_14_BOLD)
+                        color = Gray._255
+                        val label = labels[index]
+                        if (label == "Toggle RGB lighting on or off") {
+                            graphics.drawImage(
+                                PluginIcons.RGBIcon.iconToImage(),
+                                rectangle.x + 8,
+                                rectangle.y + 8,
+                                rectangle.width - 8 - 8,
+                                rectangle.height - 8 - 8,
+                                this@KeyCaps
+                            )
+                        } else {
+                            centerString(rectangle = rectangle, text = label, font = DEJAVU_14_BOLD)
+                        }
                     }
                 }
             }
     }
-
-    private fun getLabel(index: Int) = labels[index]
-        .replace(" and ", " / ")
-        .replace("KC_".toRegex(), "")
 
     private fun Graphics2D.drawBox(rectangle: Rectangle, background: Color, padding: Int) {
         color = background
@@ -152,14 +162,26 @@ internal class KeyCaps(
     ) {
         val frc = FontRenderContext(null, true, true)
         val r2D = font.getStringBounds(text, frc)
-        val rWidth = Math.round(r2D.width).toInt()
-        val rHeight = Math.round(r2D.height).toInt()
-        val rX = Math.round(r2D.x).toInt()
-        val rY = Math.round(r2D.y).toInt()
+        val rWidth = round(r2D.width).toInt()
+        val rHeight = round(r2D.height).toInt()
+        val rX = round(r2D.x).toInt()
+        val rY = round(r2D.y).toInt()
         val a = rectangle.width / 2 - rWidth / 2 - rX
         val b = rectangle.height / 2 - rHeight / 2 - rY
         this.font = font
-        this.color = JBColor.WHITE
         this.drawString(text, rectangle.x + a, rectangle.y + b)
     }
+
+    private fun Icon.iconToImage(x: Int = 0, y: Int = 0): Image =
+        if (this is ImageIcon) image
+        else {
+            val image = GraphicsEnvironment
+                .getLocalGraphicsEnvironment()
+                .defaultScreenDevice
+                .defaultConfiguration.createCompatibleImage(iconWidth, iconHeight)
+            val graphics2D = image.createGraphics()
+            paintIcon(null, graphics2D, x, y)
+            graphics2D.dispose()
+            image
+        }
 }

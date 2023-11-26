@@ -5,7 +5,7 @@ import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 
 internal fun Row.layerSwitcher(layersSize: Int, switchLayer: (index: Int ) -> Unit): Cell<JBBox> =
-    hbox {
+    hbox box@ {
         List(layersSize) { index ->
             jButton("$index") {
                 this.addActionListener {
@@ -13,5 +13,5 @@ internal fun Row.layerSwitcher(layersSize: Int, switchLayer: (index: Int ) -> Un
                     switchLayer(layerIndex)
                 }
             }
-        }.forEach { this + it }
-    }.let { cell(it) }
+        }.forEach { jButton -> this@box + jButton }
+    }.let(::cell)

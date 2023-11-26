@@ -33,7 +33,6 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
 
     val content = panel {
         row { errorLabel(error) }
-        row { cell(JSeparator()) }
         row {
             innerRow {
                 this + jlabel("Select keyboard", TIME_NEW_ROMAN_18)
@@ -47,7 +46,6 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
                 }
             }
         }
-        row { cell(JSeparator()) }
         row { label("Upload layers").applyToComponent { font = TIME_NEW_ROMAN_18 } }
         row { uploadLayersBox(windowState, ::refreshKeyboard) }
         row {
@@ -68,6 +66,9 @@ internal class QmkWindow(private val toolWindow: ToolWindow) : DumbUtil, DumbAwa
             remove(KEYBOARD_INDEX)
             repaint()
             this + keyCapsPanel(windowState.layers, keyCodes, windowState)
+        }
+        layersSwitchButtons.applyToComponent {
+            repaint()
         }
     }
 
