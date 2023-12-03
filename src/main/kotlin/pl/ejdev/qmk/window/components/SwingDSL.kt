@@ -23,9 +23,6 @@ fun jButton(name: String, ctx: JButton.() -> Unit) = JButton(name).apply(ctx)
 
 fun textField(ctx: JTextField.() -> Unit) = JTextField().apply(ctx)
 
-fun jlabel(text: String, font: Font? = null) = JLabel(text).apply {
-    font?.let { this.font = it }
-}
 
 fun setupPanel(
     prefWidth: Int,

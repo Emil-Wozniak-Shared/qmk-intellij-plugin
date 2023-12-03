@@ -15,3 +15,15 @@ internal fun Row.layerSwitcher(layersSize: Int, switchLayer: (index: Int ) -> Un
             }
         }.forEach { jButton -> this@box + jButton }
     }.let(::cell)
+
+internal fun layerSwitcher(layersSize: Int, switchLayer: (index: Int ) -> Unit): JBBox =
+    hbox box@ {
+        List(layersSize) { index ->
+            jButton("$index") {
+                this.addActionListener {
+                    val layerIndex = it.actionCommand.toInt()
+                    switchLayer(layerIndex)
+                }
+            }
+        }.forEach { jButton -> this@box + jButton }
+    }

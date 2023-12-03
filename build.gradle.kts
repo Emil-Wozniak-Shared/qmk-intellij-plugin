@@ -2,6 +2,7 @@ plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.10"
     id("org.jetbrains.intellij") version "1.15.0"
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 group = "pl.ejdev"
@@ -20,6 +21,7 @@ intellij {
     plugins.set(listOf(/* Plugin Dependencies */))
     dependencies {
         implementation("com.beust:klaxon:5.6")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     }
 }
 

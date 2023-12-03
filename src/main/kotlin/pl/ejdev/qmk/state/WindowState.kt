@@ -1,12 +1,14 @@
 package pl.ejdev.qmk.state
 
+import com.intellij.openapi.components.State
 import pl.ejdev.qmk.models.layouts.Keyboard
 import pl.ejdev.qmk.window.defaultLayout
 
+@State(name = "app state")
 internal data class WindowState(
     var keyboard: String = "",
     var layers: List<List<String>> = defaultLayout,
-    var keyboards: List<Keyboard> = emptyList()
+    var keyboards: List<Keyboard> = emptyList(),
 ) {
     fun change(keyboard: String, setLayout: (Keyboard) -> Unit) {
         this.keyboard = keyboard

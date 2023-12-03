@@ -1,34 +1,21 @@
 package pl.ejdev.qmk.window.components
 
-import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.components.JBBox
-import com.intellij.ui.components.JBTextField
-import pl.ejdev.qmk.utils.listeners.addKeyPressListener
+import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import kotlin.concurrent.thread
+import javax.swing.JTextField
 
-fun JBBox.searchTextField() {
-    JBTextField().apply {
-        var text = this.text
-        addKeyPressListener(
-            press = {
-                text += it.keyChar
-//                filePathsComboBox.apply {
-//                    thread { findKeyboardInfo(text) }
-//                }
-            },
-            release = {
-                if (it.keyCode == KeyEvent.VK_BACK_SPACE) {
-                    text = text.substring(0, text.length - 2)
-//                    filePathsComboBox.apply {
-//                        thread { findKeyboardInfo(text) }
-//                    }
-                }
-            }
-        )
-    }.also { add(it) }
-}
+fun JTextField.defaultKeyboardListener(
+    release: (String) -> Unit
+) {
+    this.addKeyListener(object : KeyAdapter() {
+        override fun keyReleased(e: KeyEvent) {
+            release(text)
+        }
 
-private fun ComboBox<String>.findKeyboardInfo(text: String) {
-    // TODO change combobox state
+        override fun keyTyped(e: KeyEvent) {
+        }
+
+        override fun keyPressed(e: KeyEvent) {
+        }
+    })
 }
