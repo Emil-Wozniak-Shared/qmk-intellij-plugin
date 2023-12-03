@@ -1,7 +1,9 @@
 package pl.ejdev.qmk.window.components
 
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBPanel
 import pl.ejdev.qmk.models.layouts.LayoutCell
 import pl.ejdev.qmk.utils.io.csv.KeyCode
 import pl.ejdev.qmk.utils.io.csv.toGraphic
@@ -12,42 +14,40 @@ import java.awt.*
 import java.awt.font.FontRenderContext
 import javax.swing.Icon
 import javax.swing.ImageIcon
-import javax.swing.JPanel
 import kotlin.math.roundToInt
-
-internal fun keyCapLayout(
-    width: Double,
-    groups: Map<List<Int>, List<LayoutCell>>,
-    height: Double,
-    codes: List<List<KeyCode>>,
-    capSize: Int,
-    layerIndex: Int
-) = KeyCapsLayout(
-    width = (width * (capSize * capSize) * groups.maxOf { it.value.size }).roundToInt(),
-    height = (height * (capSize * capSize) * groups.size).roundToInt(),
-    labels = codes[layerIndex],
-    visible = layerIndex == 0
-)
-
-private fun rectangle(cell: LayoutCell, size: Int): Rectangle {
-    val x: Int = (cell.x * size).roundToInt()
-    val y: Int = (cell.y * size).roundToInt()
-    val w: Int = (cell.w * size).roundToInt()
-    val h: Int = (cell.h * size).roundToInt()
-    return Rectangle(x, y, w, h)
-}
 
 internal class KeyCapsLayout(
     private val width: Int = 100,
     private val height: Int = 100,
     private val labels: List<KeyCode>,
     private val visible: Boolean = true
-) : JPanel() {
+) : JBPanel<DialogPanel>(FlowLayout()) {
+    constructor(
+        width: Double,
+        groups: Map<List<Int>, List<LayoutCell>>,
+        height: Double,
+        codes: List<List<KeyCode>>,
+        capSize: Int,
+        layerIndex: Int
+    ) : this(
+        width = (width * (capSize * capSize) * groups.maxOf { it.value.size }).roundToInt(),
+        height = (height * (capSize * capSize) * groups.size).roundToInt(),
+        labels = codes[layerIndex],
+        visible = layerIndex == 0
+    )
 
     private val keymap: MutableList<Rectangle> = mutableListOf()
 
     init {
         isVisible = visible
+    }
+
+    private fun rectangle(cell: LayoutCell, size: Int): Rectangle {
+        val x: Int = (cell.x * size).roundToInt()
+        val y: Int = (cell.y * size).roundToInt()
+        val w: Int = (cell.w * size).roundToInt()
+        val h: Int = (cell.h * size).roundToInt()
+        return Rectangle(x, y, w, h)
     }
 
     internal fun addKeymaps(values: Collection<List<LayoutCell>>, capSize: Int) = apply {

@@ -12,7 +12,9 @@ import com.intellij.ui.dsl.builder.Row
 import pl.ejdev.qmk.service.KeyboardService
 import pl.ejdev.qmk.state.WindowState
 import pl.ejdev.qmk.utils.io.csv.KeyCode
-import pl.ejdev.qmk.window.components.*
+import pl.ejdev.qmk.window.components.KeyboardPanel
+import pl.ejdev.qmk.window.components.LayerSwitcher
+import pl.ejdev.qmk.window.components.onChange
 import pl.ejdev.qmk.window.defaultLayout
 
 internal class KeyBoardSwitch(
@@ -24,8 +26,8 @@ internal class KeyBoardSwitch(
         private const val KEYBOARD_INDEX = 0
     }
 
-    private lateinit var keyboard: KeyCapsPanel
-    private lateinit var layersSwitchButtons: JBBox
+    private lateinit var keyboard: KeyboardPanel
+    private lateinit var layersSwitchButtons: LayerSwitcher
 
     init {
         add(JBBox.createHorizontalBox().let { comboBox ->
@@ -37,17 +39,17 @@ internal class KeyBoardSwitch(
                             refreshState(selected.toString())
                             refreshKeyboard()
                         })
-            }.let { comboBox.add(it) }
+            }.let(comboBox::add)
         })
         add(JBBox.createHorizontalBox().let { switchBox ->
-            layerSwitcher(windowState.layers.size, ::layerSwitch)
+            LayerSwitcher(windowState.layers.size, ::layerSwitch)
                 .also { layersSwitchButtons = it }
-                .let { switchBox.add(it) }
+                .let(switchBox::add)
         })
         add(JBBox.createHorizontalBox().let { keyboardPanelBox ->
-            KeyCapsPanel(defaultLayout, keyCodes, windowState, settingsManager.fontSize)
+            KeyboardPanel(defaultLayout, keyCodes, windowState, settingsManager.fontSize)
                 .also { keyboard = it }
-                .let { keyboardPanelBox.add(it) }
+                .let(keyboardPanelBox::add)
         })
     }
 
@@ -55,7 +57,7 @@ internal class KeyBoardSwitch(
         keyboard.apply {
             remove(KEYBOARD_INDEX)
             repaint()
-            this + KeyCapsPanel(windowState.layers, keyCodes, windowState, settingsManager.fontSize)
+            add(KeyboardPanel(windowState.layers, keyCodes, windowState, settingsManager.fontSize))
         }
         layersSwitchButtons.repaint()
 
@@ -68,13 +70,8 @@ internal class KeyBoardSwitch(
         }
     }
 
-    private fun layerSwitch(layerIndex: Int) {
-        keyboard.apply {
-            this.layers.mapIndexed { index, layer ->
-                layer.isVisible = index == layerIndex
-                layer.repaint()
-            }
-        }
+    private fun layerSwitch(visibleLayer: Int) {
+        keyboard.refresh(visibleLayer)
     }
 
     fun addToIJ(row: Row) = row.cell(this)
