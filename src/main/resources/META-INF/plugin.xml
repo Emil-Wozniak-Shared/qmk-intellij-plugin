@@ -24,6 +24,8 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="pl.ejdev.qmk.window.QmlWindowFactory" id="QMK"/>
+        <applicationService serviceImplementation="pl.ejdev.qmk.service.FetcherKeyboardSettings" />
+        <applicationService serviceImplementation="pl.ejdev.qmk.service.WindowStateSettings" />
+        <toolWindow factoryClass="pl.ejdev.qmk.QmlWindowFactory" id="QMK"/>
     </extensions>
 </idea-plugin>

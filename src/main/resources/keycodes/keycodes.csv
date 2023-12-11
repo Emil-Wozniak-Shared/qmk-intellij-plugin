@@ -50,7 +50,7 @@ KC_BACKSLASH;KC_BSLS;\ and \|;✔;✔;✔
 KC_NONUS_HASH;KC_NUHS;Non-US # and ~;✔;✔;✔
 KC_SEMICOLON;KC_SCLN;; and :;✔;✔;✔
 KC_QUOTE;KC_QUOT;' and '';✔;✔;✔
-KC_GRAVE;KC_GRV;<code>&#96;</code> and ~;✔;✔;✔
+KC_GRAVE;KC_GRV;` and ~;✔;✔;✔
 KC_COMMA;KC_COMM;, and <;✔;✔;✔
 KC_DOT;;. and >;✔;✔;✔
 KC_SLASH;KC_SLSH;/ and ?;✔;✔;✔
@@ -245,7 +245,7 @@ QK_DYNAMIC_MACRO_RECORD_START_2;DM_REC2;Start recording Macro 2
 QK_DYNAMIC_MACRO_PLAY_1;DM_PLY1;Replay Macro 1
 QK_DYNAMIC_MACRO_PLAY_2;DM_PLY2;Replay Macro 2
 QK_DYNAMIC_MACRO_RECORD_STOP;DM_RSTP;Finish the macro that is currently being recorded.
-QK_GRAVE_ESCAPE;QK_GESC;Escape when pressed, <code>&#96;</code> when Shift or GUI are held
+QK_GRAVE_ESCAPE;QK_GESC;Escape when pressed, <code>`</code> when Shift or GUI are held
 QK_JOYSTICK_BUTTON_0;JS_0;Button 0
 QK_JOYSTICK_BUTTON_1;JS_1;Button 1
 QK_JOYSTICK_BUTTON_2;JS_2;Button 2
@@ -313,8 +313,8 @@ QK_MAGIC_TOGGLE_ALT_GUI;AG_TOGG;Toggle Alt and GUI swap on both sides
 QK_MAGIC_GUI_OFF;GU_OFF;Disable the GUI keys
 QK_MAGIC_GUI_ON;GU_ON;Enable the GUI keys
 QK_MAGIC_TOGGLE_GUI;GU_TOGG;Toggles the status of the GUI keys
-QK_MAGIC_SWAP_GRAVE_ESC;GE_SWAP;Swap <code>&#96;</code> and Escape
-QK_MAGIC_UNSWAP_GRAVE_ESC;GE_NORM;Unswap <code>&#96;</code> and Escape
+QK_MAGIC_SWAP_GRAVE_ESC;GE_SWAP;Swap ` and Escape
+QK_MAGIC_UNSWAP_GRAVE_ESC;GE_NORM;Unswap ` and Escape
 QK_MAGIC_SWAP_BACKSLASH_BACKSPACE;BS_SWAP;Swap \ and Backspace
 QK_MAGIC_UNSWAP_BACKSLASH_BACKSPACE;BS_NORM;Unswap \ and Backspace
 QK_MAGIC_TOGGLE_BACKSLASH_BACKSPACE;BS_TOGG;Toggle \ and Backspace swap state
@@ -547,7 +547,6 @@ RGB_MODE_KNIGHT;RGB_M_K;"Knight Rider" animation mode
 RGB_MODE_XMAS;RGB_M_X;Christmas animation mode
 RGB_MODE_GRADIENT;RGB_M_G;Static gradient animation mode
 RGB_MODE_RGBTEST;RGB_M_T;Red,Green,Blue test animation mode
-RGB_TOG;;Toggle RGB lighting on or off
 RGB_MODE_FORWARD;RGB_MOD;Cycle through modes, reverse direction when Shift is held
 RGB_MODE_REVERSE;RGB_RMOD;Cycle through modes in reverse, forward direction when Shift is held
 RGB_HUI;;Increase hue, decrease hue when Shift is held

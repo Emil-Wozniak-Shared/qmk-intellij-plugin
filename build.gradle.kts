@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.10"
-    id("org.jetbrains.intellij") version "1.15.0"
+    id("org.jetbrains.intellij") version "1.16.0"
     kotlin("plugin.serialization") version "1.9.10"
 }
 
@@ -22,6 +22,12 @@ intellij {
     dependencies {
         implementation("com.beust:klaxon:5.6")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+        implementation("com.google.inject:guice:5.1.0") {
+            exclude(group = "com.google.guava", module = "guava")
+        }
+        implementation("com.google.inject.extensions:guice-multibindings:4.2.3") {
+            exclude(group = "com.google.guava", module = "guava")
+        }
     }
 }
 
