@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class Keyboards(
     @SerialName("keyboards")
-    val keyboards: List<Keyboard> = listOf()
+    val keyboards: List<Keyboard> = emptyList()
 )
 
 @Serializable
